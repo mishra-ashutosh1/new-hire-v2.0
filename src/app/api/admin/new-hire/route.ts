@@ -8,6 +8,7 @@ import {
   getSession,
 } from "@/lib/auth/session";
 import { writeAuditEvent } from "@/lib/audit/writer";
+import { POC_ACTOR_EMAIL, POC_MODE_ENABLED } from "@/lib/auth/poc";
 import { randomUUID } from "node:crypto";
 
 export const dynamic = "force-dynamic";
@@ -54,23 +55,28 @@ function isDuplicateSubmission(requestId: string): boolean {
 
 export async function POST(request: Request) {
   const session = await getSession();
-  if (!session) {
-    return NextResponse.json(
-      { error: { code: "UNAUTHENTICATED", message: "authentication required" } },
-      { status: 401 },
-    );
-  }
 
-  try {
-    assertModuleAccess(session, "new-hire");
-  } catch (error) {
-    if (error instanceof AuthorizationError) {
+  // POC_MODE skips ONLY the identity check. Validation, the duplicate guard, the
+  // feature flag and the dry run all still apply below.
+  if (!POC_MODE_ENABLED) {
+    if (!session) {
       return NextResponse.json(
-        { error: { code: "FORBIDDEN", message: error.message } },
-        { status: error.status },
+        { error: { code: "UNAUTHENTICATED", message: "authentication required" } },
+        { status: 401 },
       );
     }
-    throw error;
+
+    try {
+      assertModuleAccess(session, "new-hire");
+    } catch (error) {
+      if (error instanceof AuthorizationError) {
+        return NextResponse.json(
+          { error: { code: "FORBIDDEN", message: error.message } },
+          { status: error.status },
+        );
+      }
+      throw error;
+    }
   }
 
   // Gated until the contract is verified against the workflow.
@@ -173,7 +179,7 @@ code: "CONTRACT_UNVERIFIED",
   }
 
   await writeAuditEvent({
-    actorEmail: session.email,
+    actorEmail: session?.email ?? POC_ACTOR_EMAIL,
     action: "create",
     employeeId: "*",
     fieldsDisclosed: [],
