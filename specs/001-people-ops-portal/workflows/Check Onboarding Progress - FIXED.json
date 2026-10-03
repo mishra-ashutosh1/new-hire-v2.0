@@ -1,0 +1,370 @@
+{
+  "name": "Check Onboarding Progress (FIXED 2026-10-03)",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1FoGZrSYydXmoHnMLfNdqlGa1GOpHdqvwLGOHW8XQz5o"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1FoGZrSYydXmoHnMLfNdqlGa1GOpHdqvwLGOHW8XQz5o/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "temp_emp_id": "={{ $('Onboarding Progress API').first().json.body.temp_emp_id }}",
+            "onboarding_stage": "={{ $('Onboarding Progress API').first().json.body.onboarding_stage }}"
+          },
+          "matchingColumns": [
+            "temp_emp_id"
+          ],
+          "schema": [
+            {
+              "id": "temp_emp_id",
+              "displayName": "temp_emp_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "role",
+              "displayName": "role",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "start_date",
+              "displayName": "start_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "cohort",
+              "displayName": "cohort",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "emailID",
+              "displayName": "emailID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "total_essentials",
+              "displayName": "total_essentials",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "completed_essentials",
+              "displayName": "completed_essentials",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "onboarding_stage",
+              "displayName": "onboarding_stage",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "welcome_status",
+              "displayName": "welcome_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "e2e33b7e-5672-412a-ac62-82dc8b130fde",
+      "name": "Update Onboarding Stage",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        976,
+        640
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "JHPBhxqhUCcitbZ4",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "onboarding-progress",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "5ab029c2-dbc1-4eff-9d24-ea685bfb8785",
+      "name": "Onboarding Progress API",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        352,
+        752
+      ],
+      "webhookId": "890026e3-cd79-40d3-9558-b4450c090869"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "84340db4-567b-485e-9a4b-8514928bd31b",
+              "leftValue": "={{ $json.body.onboarding_stage }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "name": "filter.operator.notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ee15cc27-748d-4770-8f73-5853dc32c45b",
+      "name": "Stage Update Requested?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        656,
+        752
+      ],
+      "notes": "FIXED: was leftValue:\"\" / rightValue:\"\" with equals, so \"\" === \"\" was ALWAYS true and every read wrote an empty string to the sheet. Now requires a non-empty body.onboarding_stage."
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1FoGZrSYydXmoHnMLfNdqlGa1GOpHdqvwLGOHW8XQz5o"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultName": "Sheet1"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "temp_emp_id",
+              "lookupValue": "={{ $('Onboarding Progress API').first().json.body.temp_emp_id }}"
+            }
+          ]
+        },
+        "options": {
+          "outputFormatting": {
+            "values": {
+              "general": "UNFORMATTED_VALUE",
+              "date": "FORMATTED_STRING"
+            }
+          },
+          "returnFirstMatch": false
+        }
+      },
+      "id": "71060514-5ddf-4b44-bb1c-a3aaa1709e0b",
+      "name": "Read employee row",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1296,
+        752
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "JHPBhxqhUCcitbZ4",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare Onboarding Response\n// FIXED 2026-10-03.\n//\n// The previous version scored progress against four columns — IT_ticket,\n// task_complete, meet_and_greet_with_team, onboarding_status — NONE of which\n// exist in Sheet1. Every item therefore read as not-done, so completed was\n// always [], percent_complete always 0, and total_items was the hardcoded\n// checklist.length (4) while the sheet's own total_essentials said 3.\n//\n// This version reports only what the sheet actually holds. Sheet1 columns:\n//   total_essentials (G), completed_essentials (H, a formula counting the\n//   chips in I), onboarding_stage (I, multi-value chips), welcome_status (J).\n\nconst input = $input.first()?.json ?? {};\nconst body = $('Onboarding Progress API').first()?.json?.body ?? {};\n\nconst temp_emp_id = String(body.temp_emp_id ?? input.temp_emp_id ?? '').trim();\n\nif (!temp_emp_id) {\n  return [{\n    json: {\n      status: 'error',\n      message: 'temp_emp_id is required'\n    }\n  }];\n}\n\nif (!input.temp_emp_id) {\n  return [{\n    json: {\n      status: 'not_found',\n      message: `No onboarding record found for ${temp_emp_id}.`,\n      temp_emp_id\n    }\n  }];\n}\n\n// Sheet numerics arrive as strings; tolerate blanks and stray characters.\nconst num = (v) => {\n  const n = Number(String(v ?? '').replace(/[^0-9.]/g, ''));\n  return Number.isFinite(n) && n >= 0 ? Math.floor(n) : null;\n};\n\nconst totalItems = num(input.total_essentials) ?? 0;\nconst completedCount = num(input.completed_essentials) ?? 0;\n\n// Column I is a multi-value chips column. Those chips are the only per-item\n// signal the sheet carries, so they are reported as-is instead of being mapped\n// onto invented item names. Sheet1 has no per-item checklist columns; until it\n// does, 'outstanding' can only echo the chips that are not completion states.\nconst chips = String(input.onboarding_stage ?? '')\n  .split(',')\n  .map((c) => c.trim())\n  .filter(Boolean);\n\nconst DONE = /^(complete|completed|done|finished)$/i;\nconst completed = chips.filter((c) => DONE.test(c));\nconst outstanding = chips.filter((c) => !DONE.test(c));\n\nconst percent = totalItems > 0 ? Math.round((completedCount / totalItems) * 100) : 0;\n\nconst requestedStage = body.onboarding_stage;\nconst requestedStageUpdate =\n  requestedStage !== undefined &&\n  String(requestedStage).trim() !== '';\n\nreturn [{\n  json: {\n    status: 'success',\n    temp_emp_id,\n    name: input.name ?? null,\n    role: input.role ?? null,\n    onboarding_stage: String(input.onboarding_stage ?? '').trim(),\n\n    // Deliberately null. There is no onboarding_status column in Sheet1, and\n    // welcome_status means 'the welcome email was sent' — a DIFFERENT fact.\n    // Reporting one as the other would tell HR a hire has onboarded when only\n    // their email went out.\n    onboarding_status: null,\n    welcome_status: input.welcome_status ?? null,\n\n    percent_complete: percent,\n    completed_count: completedCount,\n    total_items: totalItems,\n    completed,\n    outstanding,\n\n    // Lets the BFF distinguish 'no progress recorded' from 'the sheet has no\n    // per-item data to report'.\n    checklist_source: chips.length > 0 ? 'onboarding_stage' : 'none',\n\n    can_update_stage: true,\n    requested_stage_update: requestedStageUpdate,\n    message: `Onboarding progress retrieved for ${temp_emp_id}.`\n  }\n}];\n"
+      },
+      "id": "0eea212c-ec5a-466e-81cf-982dad402153",
+      "name": "Prepare Onboarding Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1616,
+        752
+      ],
+      "notes": "FIXED: scored against four nonexistent columns (IT_ticket, task_complete, meet_and_greet_with_team, onboarding_status), forcing total_items=4 and completion 0/4. Now derives totals from total_essentials / completed_essentials and reports the real onboarding_stage chips."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "df988a1a-6cbb-452b-8b19-f6a6f8f27bde",
+      "name": "Respond to App",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1936,
+        752
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Update Onboarding Stage": {
+      "main": [
+        [
+          {
+            "node": "Read employee row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Onboarding Progress API": {
+      "main": [
+        [
+          {
+            "node": "Stage Update Requested?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stage Update Requested?": {
+      "main": [
+        [
+          {
+            "node": "Update Onboarding Stage",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read employee row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read employee row": {
+      "main": [
+        [
+          {
+            "node": "Prepare Onboarding Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Onboarding Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to App",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "b7c5cfad-541c-44fe-a3d7-3e1632c74ab0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a6ddd5e6842371246838c66c7311bfe6a251422a3883dc953c3d093d0221a82e"
+  },
+  "nodeGroups": [],
+  "id": "B4cMqOIwxxL5ghq0",
+  "tags": []
+}

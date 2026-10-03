@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# Build output
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# Test artifacts
+coverage/
+playwright-report/
+test-results/
+.playwright/
+
+# Secrets — .env.example is the only env file that belongs in the repo.
+# The service-account credential must never be committed.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Minted dev sessions. These are real HMAC-signed `portal_session` cookies — a
+# valid one forges an hr_admin session, so they are credentials, not fixtures.
+scripts/.dev-session.json
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.tmp
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# Spec Kit working state
+.specify/feature.json

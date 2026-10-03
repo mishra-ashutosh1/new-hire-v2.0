@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens — SINGLE SOURCE OF TRUTH (T008)
+ *
+ * Every surface in this app reads these variables. Nothing hardcodes a hex
+ * value. shadcn/ui components generated into src/components/ui/ are retargeted
+ * to reference these tokens, so the library never becomes a second design
+ * system.
+ *
+ * Accent discipline: exactly ONE accent hue (--accent-*) for primary actions and
+ * focus. Status hues (--status-*) are never used for navigation, and the accent
+ * is never used for status. This is what keeps a data-dense surface readable.
+ */
+
+@theme {
+  /* --- Neutral ramp "Slate" ------------------------------------------- */
+  --color-surface-canvas: #0b0f17;
+  --color-surface-raised: #131926;
+  --color-surface-overlay: #1c2434;
+  --color-surface-input: #0f1520;
+
+  --color-border-subtle: #232d3e;
+  --color-border-strong: #33415a;
+
+  --color-text-primary: #f0f4fa;
+  --color-text-secondary: #9aa9bf;
+  /* Lightened from #64748b. The original measured 3.69:1 against
+     --color-surface-raised, below the WCAG AA 4.5:1 floor for body text, and
+     it was applied to real captions and eyebrow labels rather than decoration.
+     This value measures >=4.95:1 on canvas, raised AND overlay, so tertiary text
+     passes AA on every surface it can land on. Do not darken it again without
+     re-running tests/e2e/a11y.spec.ts. */
+  --color-text-tertiary: #8093ad;
+
+  /* --- Brand accent "Signal" (primary actions + focus only) ------------- */
+  --color-accent-400: #6fa1ff;
+  --color-accent-500: #4f8cff;
+  --color-accent-600: #3a72db;
+  --color-accent-glow: rgba(79, 140, 255, 0.16);
+
+  /* --- Status hues (encoding only, never navigation) ------------------- */
+  --color-status-success: #34d399;
+  --color-status-warning: #fbbf24;
+  --color-status-danger: #f87171;
+  --color-status-info: #60a5fa;
+  --color-status-neutral: #94a3b8;
+  /* Deliberate addition: "we genuinely don't know" is categorically
+     different from "something failed" and from "not started". */
+  --color-status-unknown: #a78bfa;
+
+  /* --- Typography (1.200 minor third, base 14px) ----------------------- */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  /* Machine-generated values (temp_emp_id, ISO dates) render distinct from
+     human-authored ones. */
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --text-display: 34px;
+  --text-display--line-height: 40px;
+  --text-h1: 26px;
+  --text-h1--line-height: 32px;
+  --text-h2: 20px;
+  --text-h2--line-height: 28px;
+  --text-h3: 16px;
+  --text-h3--line-height: 24px;
+  --text-body: 14px;
+  --text-body--line-height: 21px;
+  --text-sm: 13px;
+  --text-sm--line-height: 19px;
+  --text-caption: 12px;
+  --text-caption--line-height: 16px;
+  --text-micro: 11px;
+  --text-micro--line-height: 14px;
+
+  /* --- Spacing: 4px base ----------------------------------------------- */
+  --spacing: 4px;
+
+  /* --- Shape ------------------------------------------------------------ */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  /* Dark UI needs light-based shadows, not black. */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.36);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.48);
+
+  --ease-out-expo: cubic-bezier(0.2, 0, 0, 1);
+}
+
+:root {
+  /*
+   * Tabular numerals globally: progress figures and table columns must align.
+   */
+  --font-variant-numeric: tabular-nums;
+
+  /* Motion: 120ms hover/press, 200ms panel/modal, 320ms progress. */
+  --duration-press: 120ms;
+  --duration-panel: 200ms;
+  --duration-progress: 320ms;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-surface-canvas);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.011em;
+}
+h2,
+h3 {
+  letter-spacing: -0.006em;
+}
+
+.eyebrow {
+  font-size: var(--text-micro);
+  line-height: var(--text-micro--line-height);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-surface-canvas);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
