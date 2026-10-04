@@ -26,7 +26,7 @@
     "@hookform/resolvers": "^3.9.1",
     "@tanstack/react-query": "^5.62.0",
     "@tanstack/react-table": "^8.20.5",
-    "googleapis": "^144.0.0",
+    "googleapis": "^183.0.0",
     "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
