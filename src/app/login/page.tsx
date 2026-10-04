@@ -31,7 +31,9 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ error?: string; detail?: string }>;
 }) {
-  // Already signed in: never show a login form over a working session.
+  // Demo mode has no sign-in to perform: `getSession()` is already an admin, so
+  // the first branch below redirects. Rendering "No sign-in method is configured"
+  // here would be the one screen the demo cannot get past.
   const session = await getSession();
   if (session) redirect("/");
 

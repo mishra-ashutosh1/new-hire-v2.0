@@ -1,5 +1,8 @@
 import { google } from "googleapis";
 
+import { DEMO_MODE } from "@/lib/demo";
+import { demoRosterRows } from "@/lib/demo/roster";
+
 /**
  * Google Sheets client (T014).
  *
@@ -69,6 +72,13 @@ export interface SheetReadResult {
  * stale-while-revalidate path in cache.ts rather than failing the request.
  */
 export async function readRoster(range: string = DEFAULT_RANGE): Promise<SheetReadResult> {
+  // Demo mode answers here, before any credential lookup, so an unconfigured
+  // environment still produces a roster instead of throwing. Everything
+  // downstream — cache, ingest, tracker — is the real code path.
+  if (DEMO_MODE) {
+    return { rows: demoRosterRows(), headers: [...COLUMNS], etag: null };
+  }
+
   const sheetId = process.env.SHEET_ID;
   if (!sheetId) throw new Error("SHEET_ID is not configured");
 

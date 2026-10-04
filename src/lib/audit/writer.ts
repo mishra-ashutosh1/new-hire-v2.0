@@ -1,5 +1,7 @@
 import { google } from "googleapis";
 
+import { DEMO_MODE } from "@/lib/demo";
+
 /**
  * Append-only audit writer (T018).
  *
@@ -23,6 +25,19 @@ export interface AuditEvent {
   employeeId: string;
   fieldsDisclosed: string[];
   requestId: string;
+}
+
+/**
+ * Demo audit trail (T067).
+ *
+ * Retained rather than discarded so the demo can still show that a disclosure
+ * happened — the audit behaviour is part of what is being demonstrated, and an
+ * empty trail would look like the app does not record anything.
+ */
+const demoAuditTrail: AuditEvent[] = [];
+
+export function demoAuditEvents(): readonly AuditEvent[] {
+  return demoAuditTrail;
 }
 
 const HEADER = [
@@ -71,6 +86,14 @@ export async function ensureAuditSheet(): Promise<void> {
  * Append one audit row. THROWS on failure so the caller fails the read.
  */
 export async function writeAuditEvent(event: AuditEvent): Promise<void> {
+  // Demo mode: kept in memory, never appended. The alternative — throwing because
+  // AUDIT_SHEET_ID is unset — would break every page for a demo, and silently
+  // pretending to write to a spreadsheet would be worse.
+  if (DEMO_MODE) {
+    demoAuditTrail.push(event);
+    return;
+  }
+
   const sheetId = process.env.AUDIT_SHEET_ID;
   if (!sheetId) {
     throw new Error("AUDIT_SHEET_ID is not configured — refusing to serve unlogged employee data");

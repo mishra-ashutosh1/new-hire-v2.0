@@ -67,6 +67,7 @@ export function NewHireForm({
     id: string;
     created: boolean;
     dryRun: boolean;
+    demo: boolean;
     wire: Record<string, unknown> | null;
     message: string;
   } | null>(null);
@@ -153,6 +154,7 @@ export function NewHireForm({
             id?: string;
             created?: boolean;
             dryRun?: boolean;
+            demo?: boolean;
             wire?: Record<string, unknown>;
             message?: string;
             error?: { code?: string; message?: string; details?: unknown };
@@ -164,6 +166,7 @@ export function NewHireForm({
           id: body?.id ?? tempEmpId.trim(),
           created: body?.created !== false && body?.dryRun !== true,
           dryRun: body?.dryRun === true,
+          demo: body?.demo === true,
           wire: body?.wire ?? null,
           message: body?.message ?? "Record created.",
         });
@@ -202,9 +205,11 @@ export function NewHireForm({
             <h2 className="text-h3 text-text-primary">
               {created.dryRun
                 ? "Dry run — nothing was created"
-                : created.created
-                  ? "New hire created"
-                  : "No new record created"}
+                : created.demo
+                  ? "Demo hire created (in memory only)"
+                  : created.created
+                    ? "New hire created"
+                    : "No new record created"}
             </h2>
             <p className="text-text-secondary">{created.message}</p>
             <p className="text-text-secondary">
@@ -230,6 +235,13 @@ export function NewHireForm({
                   </div>
                 ) : null}
               </>
+            ) : created.demo ? (
+              /* They DO appear in the tracker for the rest of this process, so the
+                 link is honest here — but only in memory, and only until restart. */
+              <p className="text-text-secondary">
+                Added to the in-memory demo roster, so they appear in the tracker until the server
+                restarts. No spreadsheet was written and no welcome email was sent.
+              </p>
             ) : !created.created ? (
               <p className="text-text-secondary">
                 That identifier already exists in the sheet, so nothing was written and no

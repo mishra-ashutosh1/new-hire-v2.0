@@ -84,6 +84,17 @@ export function rosterAgeSeconds(): number | null {
   return entry ? Math.round((Date.now() - entry.fetchedAt) / 1000) : null;
 }
 
+/**
+ * Drop the cached snapshot so the next read is live.
+ *
+ * Needed after anything writes through the roster — in demo mode, appending a
+ * hire here is the write, and a 60s-stale cache would show the tracker
+ * contradicting the success message the user just received.
+ */
+export function invalidateRoster(): void {
+  entry = null;
+}
+
 /** Test seam — resets module state between cases. */
 export function __resetRosterCache(): void {
   entry = null;

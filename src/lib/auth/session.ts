@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { Role } from "@/types/domain";
+import { DEMO_MODE, DEMO_SESSION } from "@/lib/demo";
 
 /**
  * Session and role gate (T017).
@@ -74,6 +75,11 @@ export function verifySessionToken(token: string | undefined): Session | null {
 /* --- Server-side session access ---------------------------------------- */
 
 export async function getSession(): Promise<Session | null> {
+  // Demo mode: every request is the synthetic admin. Placed before the cookie is
+  // read so the demo needs no SESSION_SECRET and no sign-in — and so a stale
+  // cookie from a real session cannot reach `secret()` and throw.
+  if (DEMO_MODE) return { ...DEMO_SESSION };
+
   const store = await cookies();
   return verifySessionToken(store.get(COOKIE_NAME)?.value);
 }

@@ -1,4 +1,6 @@
 import { classifyUpstreamError } from "./classify";
+import { DEMO_MODE } from "@/lib/demo";
+import { demoEmployee, demoKnownIds } from "@/lib/demo/roster";
 
 /**
  * n8n webhook client (T012).
@@ -42,11 +44,101 @@ async function sleep(ms: number): Promise<void> {
 /**
  * POST a JSON body to an n8n webhook path. Retries once on retryable status.
  */
+/**
+ * Canned responses for demo mode (T067).
+ *
+ * Shapes are copied from the payloads observed live on 2026-10-02, including the
+ * unfriendly ones: `onboarding-progress` returns `not_found` as HTTP 200, and an
+ * employee with no `onboarding_stage` gets `checklist_source: "none"` with empty
+ * `completed` AND `outstanding` — which the UI must render as missing data rather
+ * than "all done". A demo that fed tidy optimistic data would demo a UI that
+ * does not exist.
+ */
+function demoWebhookResponse(path: string, body: unknown): WebhookResult {
+  const payload = (body ?? {}) as Record<string, unknown>;
+  const ok = (inner: unknown): WebhookResult => ({ ok: true, httpStatus: 200, body: inner });
+
+  if (path === "onboarding-progress") {
+    const id = String(payload.temp_emp_id ?? "");
+    const employee = demoEmployee(id);
+    if (!employee) {
+      // `not_found` is HTTP 200 in the real workflow, not 404.
+      return ok({ status: "not_found", message: `No onboarding record found for ${id}.` });
+    }
+    const stage = employee.onboarding_stage ?? "";
+    const hasChecklist = stage.trim().length > 0;
+    return ok({
+      status: "success",
+      temp_emp_id: id,
+      name: employee.name ?? null,
+      role: employee.role ?? null,
+      onboarding_stage: stage,
+      onboarding_status: null,
+      welcome_status: employee.welcome_status ?? null,
+      percent_complete: hasChecklist ? 33 : 0,
+      completed_count: 0,
+      total_items: 3,
+      completed: [],
+      outstanding: hasChecklist ? [stage] : [],
+      checklist_source: hasChecklist ? "onboarding_stage" : "none",
+      can_update_stage: true,
+      requested_stage_update: false,
+      message: `Onboarding progress retrieved for ${id}.`,
+    });
+  }
+
+  if (path === "welcome") {
+    // `already_sent` is idempotent success, and `email_sent: false` because no
+    // demo ever sends an email.
+    return ok({
+      status: "already_sent",
+      message: "No welcome email was sent: this is demo mode.",
+      email_sent: false,
+    });
+  }
+
+  if (path === "policy") {
+    return ok({
+      status: "success",
+      answer:
+        "This is a demo answer generated locally. No policy document was read and no workflow was called.",
+      source: "demo",
+    });
+  }
+
+  if (path === "admin") {
+    const id = String(payload.temp_emp_id ?? "");
+    if (demoKnownIds().has(id)) {
+      return ok({
+        status: "already_processed",
+        temp_emp_id: id,
+        message: `${id} already exists in the demo roster. Nothing was written.`,
+      });
+    }
+    return ok({
+      status: "ok",
+      temp_emp_id: id,
+      name: payload.name ?? null,
+      emailID: payload.emailID ?? null,
+      // The real workflow reports an onboarding STATUS here. It is omitted rather
+      // than invented, because a demo must not manufacture onboarding progress.
+      message: "Demo hire accepted. No email was sent and no sheet was written.",
+    });
+  }
+
+  return { ok: false, httpStatus: 404, body: { message: `demo mode has no webhook "${path}"` } };
+}
+
 export async function callWebhook(
   path: string,
   body: unknown,
   options: { timeoutMs?: number } = {},
 ): Promise<WebhookResult> {
+  // Demo mode returns BEFORE `baseUrl()` is read, so no URL is ever constructed
+  // and no socket is opened. A missing N8N_BASE_URL cannot turn a demo into an
+  // accidental live call.
+  if (DEMO_MODE) return demoWebhookResponse(path, body);
+
   const url = `${baseUrl()}/webhook/${path}`;
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 

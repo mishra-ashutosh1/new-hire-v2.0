@@ -18,6 +18,7 @@
     "probe:upstreams": "tsx scripts/probe-upstreams.ts",
     "seed:fixtures": "tsx scripts/seed-fixtures.ts",
     "verify:progress": "tsx scripts/verify-progress-webhook.ts",
+    "verify:demo": "tsx scripts/verify-demo-mode.ts",
     "dev:session": "tsx scripts/mint-dev-session.ts",
     "auth:passcode": "tsx scripts/mint-passcode.ts"
   },

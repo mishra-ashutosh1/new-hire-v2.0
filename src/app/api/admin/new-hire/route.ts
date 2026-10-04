@@ -9,6 +9,9 @@ import {
 } from "@/lib/auth/session";
 import { writeAuditEvent } from "@/lib/audit/writer";
 import { POC_ACTOR_EMAIL, POC_MODE_ENABLED } from "@/lib/auth/poc";
+import { DEMO_MODE } from "@/lib/demo";
+import { addDemoEmployee } from "@/lib/demo/roster";
+import { invalidateRoster } from "@/lib/sheets/cache";
 import { randomUUID } from "node:crypto";
 
 export const dynamic = "force-dynamic";
@@ -203,6 +206,26 @@ code: "CONTRACT_UNVERIFIED",
 
   const classified = classifyAdmin(response.body);
 
+  // Demo mode: the "write" is a line in this process's memory. Recorded here
+  // rather than upstream so the tracker shows the new hire for the rest of the
+  // demo session, and cleared from the roster cache so it appears immediately.
+  if (DEMO_MODE && classified.outcome === "created" && classified.tempEmpId) {
+    addDemoEmployee({
+      temp_emp_id: classified.tempEmpId,
+      name: wire.name as string,
+      role: wire.role as string,
+      emailID: wire.emailID as string,
+      ...(wire.start_date ? { start_date: wire.start_date as string } : {}),
+      ...(wire.cohort ? { cohort: wire.cohort as string } : {}),
+      ...(wire.total_essentials !== undefined
+        ? { total_essentials: String(wire.total_essentials) }
+        : {}),
+      // `welcome_status` stays empty: the real workflow writes `welcome_sent`
+      // after emailing someone, and in demo mode nobody was emailed.
+    });
+    invalidateRoster();
+  }
+
   if (classified.outcome === "rejected") {
     return NextResponse.json(
       {
@@ -235,7 +258,12 @@ code: "CONTRACT_UNVERIFIED",
     {
       id: classified.tempEmpId,
       created: true,
-      message: `New hire record created${classified.tempEmpId ? ` with identifier ${classified.tempEmpId}` : ""}.`,
+      // Demo mode writes to this process's memory only. The UI says so rather
+      // than reporting a hire that does not exist anywhere else.
+      demo: DEMO_MODE,
+      message: DEMO_MODE
+        ? `Demo hire ${classified.tempEmpId ?? ""} added to the in-memory roster. No email was sent and no sheet was written.`.trim()
+        : `New hire record created${classified.tempEmpId ? ` with identifier ${classified.tempEmpId}` : ""}.`,
     },
     { status: 201 },
   );

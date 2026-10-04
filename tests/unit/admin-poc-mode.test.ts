@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * T066 — POC mode.
@@ -34,6 +34,11 @@ const VALID_BODY = {
   email: "priya.nair@company.com",
 };
 
+// Every test here re-imports the route after `vi.resetModules()`, dragging in
+// `googleapis` each time. That costs seconds, and under parallel load it exceeds
+// vitest's 5s default — a timeout that says nothing about the route.
+vi.setConfig({ testTimeout: 30_000 });
+
 async function loadRoute(pocMode: boolean) {
   vi.resetModules();
   process.env.NEW_HIRE_POC_MODE = pocMode ? "true" : "false";
@@ -58,6 +63,18 @@ beforeEach(() => {
   createNewHire.mockReset();
   writeAuditEvent.mockReset().mockResolvedValue(undefined);
 });
+
+/**
+ * Pay the cold-import cost once.
+ *
+ * Every test here re-imports the route after `vi.resetModules()`, and the first
+ * few do so while `googleapis` is still being transformed — which takes longer
+ * than vitest's 5s default. The timeout is an import-cost artefact, not a
+ * statement about the route.
+ */
+beforeAll(async () => {
+  await loadRoute(true);
+}, 60_000);
 
 describe("POC mode", () => {
   it("accepts a request with no session when enabled", async () => {
