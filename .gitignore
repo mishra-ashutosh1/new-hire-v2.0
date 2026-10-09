@@ -24,6 +24,15 @@ test-results/
 !.env.example
 *.pem
 *.key
+*.p12
+*.pfx
+*.jks
+*service-account*.json
+google-credentials*.json
+client_secret*.json
+credentials*.json
+.npmrc
+!.npmrc.example
 
 # Minted dev sessions. These are real HMAC-signed `portal_session` cookies — a
 # valid one forges an hr_admin session, so they are credentials, not fixtures.

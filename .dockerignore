@@ -16,6 +16,18 @@ Dockerfile*
 .env.*
 !.env.example
 npm-debug.log*
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*service-account*.json
+google-credentials*.json
+client_secret*.json
+credentials*.json
+.npmrc
+!.npmrc.example
+scripts/.dev-session.json
 
 docs/
 specs/
