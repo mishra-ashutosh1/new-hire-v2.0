@@ -1,4 +1,5 @@
-import { afterAll, describe, expect, it } from "vitest";
+import { createHmac } from "node:crypto";
+import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 import {
   createSessionToken,
   verifySessionToken,
@@ -19,6 +20,7 @@ import {
 // is correct production behaviour but would throw here. Provide one for the
 // duration of the module.
 process.env.SESSION_SECRET = "test-secret-value-that-is-at-least-32-chars";
+afterEach(() => vi.useRealTimers());
 afterAll(() => {
   delete process.env.SESSION_SECRET;
 });
@@ -116,6 +118,32 @@ describe("session token", () => {
     expect(verifySessionToken("")).toBeNull();
     expect(verifySessionToken("no-dot")).toBeNull();
     expect(verifySessionToken("a.b.c")).toBeNull();
+  });
+
+  function signedClaims(claims: Record<string, unknown>): string {
+    const payload = Buffer.from(JSON.stringify(claims), "utf8").toString("base64url");
+    const signature = createHmac("sha256", process.env.SESSION_SECRET as string)
+      .update(payload)
+      .digest("base64url");
+    return `${payload}.${signature}`;
+  }
+
+  it("rejects a legacy signed token with no expiry", () => {
+    expect(verifySessionToken(signedClaims({ ...HR }))).toBeNull();
+  });
+
+  it("rejects an expired token", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-11-09T00:00:00Z"));
+    const token = createSessionToken(HR);
+    vi.setSystemTime(new Date("2026-11-09T08:00:01Z"));
+    expect(verifySessionToken(token)).toBeNull();
+  });
+
+  it("rejects signed claims with an invalid role or lifetime", () => {
+    const now = Math.floor(Date.now() / 1000);
+    expect(verifySessionToken(signedClaims({ ...HR, role: "owner", iat: now, exp: now + 60 }))).toBeNull();
+    expect(verifySessionToken(signedClaims({ ...HR, iat: now, exp: now + 60 * 60 * 9 }))).toBeNull();
   });
 
   it("does not throw on a signature of the wrong length", () => {
