@@ -28,7 +28,10 @@ export function testCookie(options: MintOptions): {
   name: string;
   value: string;
 } {
+  const iat = Math.floor(Date.now() / 1000);
   const session = {
+    iat,
+    exp: iat + 60 * 60 * 8,
     email: options.email ?? `${options.role}@company.com`,
     role: options.role,
     scopedEmployeeIds: options.scopedEmployeeIds ?? null,

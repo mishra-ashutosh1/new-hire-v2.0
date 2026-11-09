@@ -3,6 +3,7 @@ import { probeSheetReachable } from "@/lib/sheets/client";
 import { rosterAgeSeconds } from "@/lib/sheets/cache";
 import { callWebhook } from "@/lib/n8n/client";
 import type { HealthReport } from "@/types/domain";
+import { getSession } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,12 @@ export const dynamic = "force-dynamic";
  * cheap: one n8n call and, at worst, one cached sheet read.
  */
 export async function GET() {
+  if (!(await getSession())) {
+    return NextResponse.json(
+      { error: { code: "UNAUTHENTICATED", message: "authentication required" } },
+      { status: 401 },
+    );
+  }
   const checkedAt = new Date().toISOString();
 
   // A GET would return 404 on these POST-only webhooks; send a minimal POST
