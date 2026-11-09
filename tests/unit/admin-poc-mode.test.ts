@@ -143,24 +143,15 @@ describe("POC mode", () => {
     expect(createNewHire).not.toHaveBeenCalled();
   });
 
-  it("attributes an unauthenticated create to a fixed actor, not to a blank", async () => {
+  it("is disabled for live provisioning, so anonymous callers cannot write", async () => {
     process.env.NEW_HIRE_DRY_RUN = "false";
     const POST = await loadRoute(true);
-    createNewHire.mockResolvedValue({ ok: true, httpStatus: 200, body: { status: "ok" } });
-    classifyAdmin.mockReturnValue({
-      outcome: "created",
-      tempEmpId: "1303",
-      message: "created",
-      errors: [],
-    });
 
-    await post(POST, VALID_BODY, "poc-8");
+    const response = await post(POST, VALID_BODY, "poc-8");
 
-    // `actor_email` is a compliance field. With no session it still has to name
-    // SOMETHING — a trail that says "unknown" on every row is not evidence.
-    expect(writeAuditEvent).toHaveBeenCalledWith(
-      expect.objectContaining({ actorEmail: "poc@local" }),
-    );
+    expect(response.status).toBe(401);
+    expect(createNewHire).not.toHaveBeenCalled();
+    expect(writeAuditEvent).not.toHaveBeenCalled();
   });
 
   it("refuses a client-supplied actor rather than believing it", async () => {
