@@ -48,13 +48,17 @@ function sign(payload: string): string {
 }
 
 export function createSessionToken(session: Session): string {
-  const payload = Buffer.from(JSON.stringify(session), "utf8").toString("base64url");
+  const iat = Math.floor(Date.now() / 1000);
+  const claims = { ...session, iat, exp: iat + MAX_AGE_SECONDS };
+  const payload = Buffer.from(JSON.stringify(claims), "utf8").toString("base64url");
   return `${payload}.${sign(payload)}`;
 }
 
 export function verifySessionToken(token: string | undefined): Session | null {
   if (!token) return null;
-  const [payload, signature] = token.split(".");
+  const parts = token.split(".");
+  if (parts.length !== 2) return null;
+  const [payload, signature] = parts;
   if (!payload || !signature) return null;
 
   const expected = sign(payload);
@@ -64,9 +68,29 @@ export function verifySessionToken(token: string | undefined): Session | null {
   if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
 
   try {
-    const parsed = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as Session;
-    if (!parsed.email || !parsed.role) return null;
-    return parsed;
+    const parsed: unknown = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+    if (!parsed || typeof parsed !== "object") return null;
+    const claims = parsed as Record<string, unknown>;
+    const now = Math.floor(Date.now() / 1000);
+    if (
+      typeof claims.email !== "string" || !claims.email.trim() ||
+      !["hr_admin", "manager", "new_hire"].includes(String(claims.role)) ||
+      typeof claims.iat !== "number" || !Number.isSafeInteger(claims.iat) ||
+      typeof claims.exp !== "number" || !Number.isSafeInteger(claims.exp) ||
+      claims.iat > now || claims.exp <= now || claims.exp <= claims.iat ||
+      claims.exp - claims.iat > MAX_AGE_SECONDS ||
+      !(claims.scopedEmployeeIds === null ||
+        (Array.isArray(claims.scopedEmployeeIds) &&
+          claims.scopedEmployeeIds.every((id) => typeof id === "string" && id.length > 0))) ||
+      (claims.selfId !== undefined &&
+        (typeof claims.selfId !== "string" || !claims.selfId.trim()))
+    ) return null;
+    return {
+      email: claims.email,
+      role: claims.role as Role,
+      scopedEmployeeIds: claims.scopedEmployeeIds as string[] | null,
+      ...(claims.selfId !== undefined ? { selfId: claims.selfId as string } : {}),
+    };
   } catch {
     return null;
   }

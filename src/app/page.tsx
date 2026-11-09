@@ -5,7 +5,8 @@ import { DataState } from "@/components/data-state/DataState";
 import { Card, ProgressRing, StatusBadge } from "@/components/ui";
 import { QuarantineNotice, TrackerStateBadge } from "@/components/tracker/StatusBadge";
 import { fetchJson } from "@/lib/api/fetcher";
-import type { Freshness, HealthReport, OnboardingProgress } from "@/types/domain";
+import { fetchHealth } from "@/lib/api/health";
+import type { Freshness, OnboardingProgress } from "@/types/domain";
 
 /**
  * Executive dashboard (T073).
@@ -41,10 +42,6 @@ async function fetchTracker(): Promise<{
   }>("/api/tracker");
 }
 
-async function fetchHealth(): Promise<HealthReport> {
-  const response = await fetch("/api/health");
-  return response.json() as Promise<HealthReport>;
-}
 
 function Kpi({ label, value, tone }: { label: string; value: string; tone?: "warning" | "danger" }) {
   return (

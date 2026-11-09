@@ -28,15 +28,16 @@ import { readFileSync, writeFileSync } from 'node:fs';
 const env = readFileSync('.env.local', 'utf8');
 const SECRET = env.match(/^SESSION_SECRET=(.*)$/m)?.[1]?.trim();
 
-if (!SECRET) {
-  throw new Error('SESSION_SECRET is not set in .env.local');
+if (!SECRET || SECRET.length < 32) {
+  throw new Error('SESSION_SECRET must have at least 32 characters in .env.local');
 }
 
 type Role = 'hr_admin' | 'manager' | 'new_hire';
 
 function mint(role: Role, email: string, scoped: string[] | null, selfId?: string) {
   if (!SECRET) throw new Error('SESSION_SECRET missing');
-  const session: Record<string, unknown> = { email, role, scopedEmployeeIds: scoped };
+  const iat = Math.floor(Date.now() / 1000);
+  const session: Record<string, unknown> = { email, role, scopedEmployeeIds: scoped, iat, exp: iat + 60 * 60 * 8 };
   if (selfId) session.selfId = selfId;
   const payload = Buffer.from(JSON.stringify(session), 'utf8').toString('base64url');
   const sig = createHmac('sha256', SECRET).update(payload).digest('base64url');

@@ -13,6 +13,7 @@ import { DEMO_MODE } from "@/lib/demo";
 import { addDemoEmployee } from "@/lib/demo/roster";
 import { invalidateRoster } from "@/lib/sheets/cache";
 import { randomUUID } from "node:crypto";
+import { isNewHireDryRun } from "@/lib/admin/safety";
 
 export const dynamic = "force-dynamic";
 
@@ -87,11 +88,11 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error: {
-code: "CONTRACT_UNVERIFIED",
+          code: "CONTRACT_UNVERIFIED",
         message:
           "New-hire provisioning is disabled by flag. " +
           "The contract was confirmed against the workflow on 2026-10-02, but this endpoint " +
-          "creates real employee records with no dry run and its workflow sends a real welcome " +
+          "can create real employee records and its workflow sends a real welcome " +
           "email, so it stays off until it is deliberately enabled.",
         },
       },
@@ -166,7 +167,7 @@ code: "CONTRACT_UNVERIFIED",
   // whether the page works is to create a real employee and email a real
   // stranger, which is why this feature sat unfinished: there was no way to
   // test it that did not mean doing the irreversible thing.
-  if (process.env.NEW_HIRE_DRY_RUN === "true") {
+  if (isNewHireDryRun()) {
     return NextResponse.json(
       {
         id: parsed.data.tempEmpId,

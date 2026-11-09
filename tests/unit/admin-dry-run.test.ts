@@ -56,6 +56,16 @@ beforeEach(() => {
 });
 
 describe("dry run", () => {
+  it.each([undefined, "", "TRUE", "flase"])("fails closed when the flag is %s", async (value) => {
+    if (value === undefined) delete process.env.NEW_HIRE_DRY_RUN;
+    else process.env.NEW_HIRE_DRY_RUN = value;
+    const body = await (await post(VALID_BODY, `fail-closed-${String(value)}`)).json();
+
+    expect(body).toMatchObject({ dryRun: true, created: false });
+    expect(createNewHire).not.toHaveBeenCalled();
+    expect(writeAuditEvent).not.toHaveBeenCalled();
+  });
+
   it("validates and reports without calling the workflow", async () => {
     process.env.NEW_HIRE_DRY_RUN = "true";
     const response = await post(VALID_BODY);

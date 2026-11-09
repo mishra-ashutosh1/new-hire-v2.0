@@ -5,6 +5,7 @@ import { NewHireForm } from "@/components/admin/NewHireForm";
 import { Card } from "@/components/ui";
 import { canAccessModule, getSession } from "@/lib/auth/session";
 import { POC_MODE_ENABLED } from "@/lib/auth/poc";
+import { isNewHireDryRun } from "@/lib/admin/safety";
 import { suggestNextTempEmpId } from "@/lib/admin/suggest-id";
 
 /**
@@ -130,7 +131,7 @@ export default async function NewHirePage() {
         suggestedId={suggestion.suggested}
         takenIds={suggestion.taken}
         suggestionReason={suggestion.reason}
-        dryRun={process.env.NEW_HIRE_DRY_RUN === "true"}
+        dryRun={isNewHireDryRun()}
       />
     </div>
   );
